@@ -13,3 +13,9 @@ export const listFormsByUserIdInput = z.object({
 });
 
 export type ListFormsByUserIdInputType = z.infer<typeof listFormsByUserIdInput>;
+
+export const getFormBySlugInput = z.object({
+  slug: z.string().describe("Slug of the form"),
+});
+
+export type GetFormBySlugInputType = z.infer<typeof getFormBySlugInput>;
