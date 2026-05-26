@@ -1,0 +1,1 @@
+ALTER TABLE "form_fields" ADD CONSTRAINT "form_id_label_key_unique" UNIQUE("form_id","label_key");

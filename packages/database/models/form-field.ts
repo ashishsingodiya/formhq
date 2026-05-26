@@ -45,6 +45,7 @@ export const formFieldsTable = pgTable(
   },
   (table) => [
     unique("form_id_order_unique").on(table.formId, table.order),
+    unique("form_id_label_key_unique").on(table.formId, table.labelKey),
     index("form_id_idx").on(table.formId),
   ],
 );
