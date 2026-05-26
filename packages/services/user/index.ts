@@ -1,28 +1,118 @@
-import { db } from "@repo/database";
-import { usersTable } from "@repo/database/schema";
+import { db, eq } from "@repo/database";
+import { usersTable } from "@repo/database/models/user";
+import * as JWT from "jsonwebtoken";
+import { createHmac, randomBytes } from "node:crypto";
 import { env } from "../env";
-import { googleOAuth2Client } from "../clients/google-oauth";
-import { GetAuthenticationMethodOutputSchema } from "./model";
+import {
+  createUserWithEmailAndPasswordInput,
+  CreateUserWithEmailAndPasswordInputType,
+  generateUserTokenPayload,
+  GenerateUserTokenPayloadType,
+  signInUserWithEmailAndPasswordInput,
+  SignInUserWithEmailAndPasswordInputType,
+} from "./model";
 
 class UserService {
-  public async getAuthenticationMethods(): Promise<
-    ReadonlyArray<GetAuthenticationMethodOutputSchema>
-  > {
-    const supportedAuthenticationProviders: GetAuthenticationMethodOutputSchema[] = [];
+  private async getUserByEmail(email: string) {
+    const result = await db.select().from(usersTable).where(eq(usersTable.email, email));
 
-    const isGoogleConfigured = !!(env.GOOGLE_OAUTH_CLIENT_ID && env.GOOGLE_OAUTH_CLIENT_SECRET);
+    if (!result || result.length === 0) return null;
 
-    if (isGoogleConfigured) {
-      const url = googleOAuth2Client.generateAuthUrl();
-      supportedAuthenticationProviders.push({
-        provider: "GOOGLE_OAUTH",
-        displayName: "Google",
-        displayText: "Signin with Google",
-        authUrl: url,
-      });
+    return result[0];
+  }
+
+  private async generateHash(salt: string, password: string) {
+    return createHmac("sha256", salt).update(password).digest("hex");
+  }
+
+  private async generateUserToken(payload: GenerateUserTokenPayloadType) {
+    const { id } = await generateUserTokenPayload.parseAsync(payload);
+    const token = JWT.sign({ id }, env.JWT_SECRET);
+    return { token };
+  }
+
+  private async verifyUserToken(token: string): Promise<GenerateUserTokenPayloadType> {
+    try {
+      const verificationResult = JWT.verify(token, env.JWT_SECRET) as GenerateUserTokenPayloadType;
+      return verificationResult;
+    } catch (error) {
+      throw new Error("Invalid token");
     }
+  }
 
-    return supportedAuthenticationProviders;
+  private async getUserInfoById(id: string) {
+    const user = await db
+      .select({
+        id: usersTable.id,
+        email: usersTable.email,
+        fullName: usersTable.fullName,
+        profileImageUrl: usersTable.profileImageUrl,
+      })
+      .from(usersTable)
+      .where(eq(usersTable.id, id));
+
+    if (!user || user.length === 0) throw new Error(`User with ID ${id} does not exists`);
+    return user[0]!;
+  }
+
+  public async createUserWithEmailAndPassword(payload: CreateUserWithEmailAndPasswordInputType) {
+    const { email, password, fullName } =
+      await createUserWithEmailAndPasswordInput.parseAsync(payload);
+
+    const existingUserWithEmail = await this.getUserByEmail(email);
+
+    if (existingUserWithEmail) throw new Error(`User with email ${email} already exists`);
+
+    const salt = randomBytes(16).toString("hex");
+    const hash = await this.generateHash(salt, password);
+
+    // Create user in DB
+    const userInsertResult = await db
+      .insert(usersTable)
+      .values({ email, password: hash, fullName, salt })
+      .returning({
+        id: usersTable.id,
+      });
+
+    if (!userInsertResult || userInsertResult.length === 0 || !userInsertResult[0]?.id)
+      throw new Error(`Something went wrong while creating a user `);
+
+    const userId = userInsertResult[0].id;
+
+    const { token } = await this.generateUserToken({ id: userId });
+
+    return {
+      id: userId,
+      token,
+    };
+  }
+
+  public async signInUserWithEmailAndPassword(payload: SignInUserWithEmailAndPasswordInputType) {
+    const { email, password } = await signInUserWithEmailAndPasswordInput.parseAsync(payload);
+
+    const existingUser = await this.getUserByEmail(email);
+
+    if (!existingUser) throw new Error(`User with email ${email} does not exists`);
+
+    if (!existingUser.password || !existingUser.salt)
+      throw new Error("Invalid authentication method");
+
+    const hash = await this.generateHash(existingUser.salt, password);
+
+    if (hash !== existingUser.password) throw new Error(`Invalid email or password`);
+
+    const { token } = await this.generateUserToken({ id: existingUser.id });
+
+    return {
+      id: existingUser.id,
+      token,
+    };
+  }
+
+  public async verifyAndDecodeUserToken(token: string) {
+    const { id } = await this.verifyUserToken(token);
+    const userInfo = await this.getUserInfoById(id);
+    return { ...userInfo };
   }
 }
 

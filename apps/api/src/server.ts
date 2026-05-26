@@ -1,13 +1,14 @@
-import express from "express";
 import { logger } from "@repo/logger";
 import cors from "cors";
+import express from "express";
 
-import * as trpcExpress from "@trpc/server/adapters/express";
-import { generateOpenApiDocument, createOpenApiExpressMiddleware } from "trpc-to-openapi";
 import { apiReference } from "@scalar/express-api-reference";
+import * as trpcExpress from "@trpc/server/adapters/express";
+import { createOpenApiExpressMiddleware, generateOpenApiDocument } from "trpc-to-openapi";
 
-import { serverRouter, createContext } from "@repo/trpc/server";
+import { createContext, serverRouter } from "@repo/trpc/server";
 
+import cookieParser from "cookie-parser";
 import { env } from "./env";
 
 export const app = express();
@@ -20,10 +21,13 @@ const openApiDocument = generateOpenApiDocument(serverRouter, {
 if (env.NODE_ENV !== "prod") {
   app.use(
     cors({
-      origin: "*",
+      origin: "http://localhost:3000",
+      credentials: true,
     }),
   );
 }
+
+app.use(cookieParser());
 
 app.use(express.json());
 

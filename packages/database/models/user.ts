@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, timestamp, boolean, text } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const usersTable = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -9,6 +9,9 @@ export const usersTable = pgTable("users", {
   emailVerified: boolean("email_verified").default(false),
 
   profileImageUrl: text("profile_image_url"),
+
+  salt: text("salt"),
+  password: text("password"),
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
