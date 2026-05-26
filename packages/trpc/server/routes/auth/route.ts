@@ -7,8 +7,8 @@ import {
   createUserWithEmailAndPasswordOutputModel,
   getLoggedInUserInfoInputModel,
   getLoggedInUserInfoOutputModel,
-  signInWithEmailAndPasswordInputModel,
-  signInWithEmailAndPasswordOutputModel,
+  signInUserWithEmailAndPasswordInputModel,
+  signInUserWithEmailAndPasswordOutputModel,
 } from "./model";
 
 const TAGS = ["Authentication"];
@@ -40,16 +40,16 @@ export const authRouter = router({
       };
     }),
 
-  signInWithEmailAndPassword: publicProcedure
+  signInUserWithEmailAndPassword: publicProcedure
     .meta({
       openapi: {
         method: "POST",
-        path: getPath("signInWithEmailAndPassword"),
+        path: getPath("signInUserWithEmailAndPassword"),
         tags: TAGS,
       },
     })
-    .input(signInWithEmailAndPasswordInputModel)
-    .output(signInWithEmailAndPasswordOutputModel)
+    .input(signInUserWithEmailAndPasswordInputModel)
+    .output(signInUserWithEmailAndPasswordOutputModel)
     .mutation(async ({ input, ctx }) => {
       const { email, password } = input;
       const { id, token } = await userService.signInUserWithEmailAndPassword({
