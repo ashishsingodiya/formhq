@@ -1,8 +1,13 @@
-import { db } from "@repo/database";
+import { db, eq } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
 import { customAlphabet } from "nanoid";
 import slugify from "slugify";
-import { createFormInput, CreateFormInputType } from "./model";
+import {
+  createFormInput,
+  CreateFormInputType,
+  listFormsByUserIdInput,
+  ListFormsByUserIdInputType,
+} from "./model";
 
 class FormService {
   private nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 6);
@@ -39,6 +44,22 @@ class FormService {
     return {
       id: result[0].id,
     };
+  }
+  public async listFormsByUserId(payload: ListFormsByUserIdInputType) {
+    const { userId } = await listFormsByUserIdInput.parseAsync(payload);
+
+    const forms = await db
+      .select({
+        id: formsTable.id,
+        slug: formsTable.slug,
+        title: formsTable.title,
+        description: formsTable.description,
+        createdAt: formsTable.createdAt,
+      })
+      .from(formsTable)
+      .where(eq(formsTable.createdBy, userId));
+
+    return forms;
   }
 }
 
