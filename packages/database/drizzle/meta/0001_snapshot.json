@@ -1,6 +1,6 @@
 {
-  "id": "a20e2dc4-8048-4a27-b99c-5f224b828ab6",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "2a8330f2-de93-4853-89c0-c611b19a13b6",
+  "prevId": "a20e2dc4-8048-4a27-b99c-5f224b828ab6",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -74,6 +74,79 @@
           "name": "users_email_unique",
           "nullsNotDistinct": false,
           "columns": ["email"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.forms": {
+      "name": "forms",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "slug": {
+          "name": "slug",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(55)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar(300)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "forms_created_by_users_id_fk": {
+          "name": "forms_created_by_users_id_fk",
+          "tableFrom": "forms",
+          "tableTo": "users",
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "forms_slug_unique": {
+          "name": "forms_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": ["slug"]
         }
       },
       "policies": {},
