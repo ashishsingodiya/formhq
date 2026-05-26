@@ -45,39 +45,44 @@ trpc-monorepo-1/
 ### Installation
 
 1. **Clone and install dependencies**
+
    ```bash
    pnpm install
    ```
 
 2. **Set up environment variables**
-   
+
    Create `.env.local` in the root:
+
    ```env
    # Database
    DATABASE_URL=postgresql://postgres:postgres@localhost:5432/streamyst
-   
+
    # Google OAuth
    GOOGLE_OAUTH_CLIENT_ID=your_client_id
    GOOGLE_OAUTH_CLIENT_SECRET=your_client_secret
    GOOGLE_OAUTH_REDIRECT_URI=http://localhost:3000/auth/callback
-   
+
    # Logging
    LOGGER_LEVEL=info
    NODE_ENV=development
    ```
 
 3. **Start PostgreSQL**
+
    ```bash
    docker-compose up -d
    ```
 
 4. **Run database migrations**
+
    ```bash
    pnpm db:generate
    pnpm db:migrate
    ```
 
 5. **Start development servers**
+
    ```bash
    pnpm dev
    ```
@@ -89,6 +94,7 @@ trpc-monorepo-1/
 ## Available Commands
 
 ### Development
+
 ```bash
 pnpm dev              # Start all apps in dev mode
 pnpm dev:api         # Start API only
@@ -96,6 +102,7 @@ pnpm dev:web         # Start web app only
 ```
 
 ### Database
+
 ```bash
 pnpm db:generate     # Generate Drizzle migrations
 pnpm db:migrate      # Run pending migrations
@@ -103,6 +110,7 @@ pnpm db:studio       # Open Drizzle Studio (GUI)
 ```
 
 ### Build & Test
+
 ```bash
 pnpm build           # Build all packages
 pnpm lint            # Run ESLint
@@ -112,12 +120,15 @@ pnpm type-check      # Run TypeScript type checking
 ## API Routes
 
 ### Health Check
+
 - **GET** `/health` — Returns `{ status: "healthy" }`
 
 ### Authentication
+
 - **GET** `/authentication/supported-providers` — Returns configured OAuth providers with auth URLs
 
 ### OpenAPI & Docs
+
 - **GET** `/api` — OpenAPI schema (JSON)
 - **GET** `/docs` — Scalar API documentation UI
 
@@ -135,6 +146,7 @@ The `auth.getSupportedAuthenticationProviders` route will automatically return G
 ## Database Schema
 
 Currently includes:
+
 - `usersTable` — User records with timestamps
 
 Migrations are stored in `packages/database/drizzle/`. Add new tables to `packages/database/src/models/` and generate migrations with `pnpm db:generate`.
@@ -142,6 +154,7 @@ Migrations are stored in `packages/database/drizzle/`. Add new tables to `packag
 ## Frontend Development
 
 The Next.js app uses:
+
 - **tRPC React Query client** in client components
 - **tRPC proxy client** in server components
 - **Tailwind CSS** for styling
@@ -152,6 +165,7 @@ The Next.js app uses:
 ## Backend Development
 
 The Express API:
+
 - Mounts tRPC at `/trpc`
 - Auto-generates OpenAPI schema at `/api`
 - Serves Scalar docs at `/docs`
@@ -163,12 +177,15 @@ Add new routes in `packages/trpc/src/server/routes/` and export from the main ro
 ## Deployment
 
 ### Build for Production
+
 ```bash
 pnpm build
 ```
 
 ### Environment Variables for Production
+
 Set these in your deployment platform:
+
 - `DATABASE_URL` — Production PostgreSQL connection string
 - `GOOGLE_OAUTH_CLIENT_ID` — Production OAuth credentials
 - `GOOGLE_OAUTH_CLIENT_SECRET`
@@ -177,6 +194,7 @@ Set these in your deployment platform:
 - `LOGGER_LEVEL=warn`
 
 ### Running in Production
+
 ```bash
 # API
 node apps/api/dist/server.js
@@ -188,16 +206,19 @@ npm start
 ## Troubleshooting
 
 ### Database connection fails
+
 - Ensure Docker container is running: `docker-compose ps`
 - Check `DATABASE_URL` in `.env.local`
 - Verify PostgreSQL is accessible: `psql $DATABASE_URL`
 
 ### tRPC client errors
+
 - Check that API server is running on port 8000
 - Verify `TRPC_URL` environment variable in web app
 - Check browser console for network errors
 
 ### OAuth not working
+
 - Verify credentials in `.env.local`
 - Check redirect URI matches Google Cloud console
 - Ensure `GOOGLE_OAUTH_REDIRECT_URI` is correct for your environment
@@ -205,6 +226,7 @@ npm start
 ## Contributing
 
 This is a template — feel free to modify, extend, and adapt it to your needs. Some ideas:
+
 - Add more OAuth providers (GitHub, Discord, etc.)
 - Extend the database schema
 - Add more tRPC routes
