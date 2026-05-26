@@ -9,7 +9,7 @@ export const useCreateForm = () => {
     error,
     failureCount,
     isError,
-    isIdle,
+    isPending,
     isSuccess,
     status,
   } = trpc.form.createForm.useMutation({
@@ -24,7 +24,7 @@ export const useCreateForm = () => {
     error,
     failureCount,
     isError,
-    isIdle,
+    isPending,
     isSuccess,
     status,
   };
