@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { LayoutDashboard } from "lucide-react";
+import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { useUser } from "~/hooks/api/auth";
 
@@ -31,7 +31,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               Pricing
             </Link>
             <a
-              href="https://api.formhq.com/docs"
+              href="https://formhq-api.ashish.pro/docs"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -111,7 +111,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               <ul className="flex flex-col gap-2">
                 <li>
                   <a
-                    href="https://api.formhq.com/docs"
+                    href="https://formhq-api.ashish.pro/docs"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"

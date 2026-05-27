@@ -17,8 +17,6 @@ export type SubmitFormInputType = z.infer<typeof submitFormInput>;
 
 export const listSubmissionsInput = z.object({
   formId: z.uuid().describe("UUID of the form"),
-  cursor: z.string().optional().describe("createdAt ISO cursor for pagination"),
-  limit: z.number().int().min(1).max(100).optional().default(30),
 });
 
 export type ListSubmissionsInputType = z.infer<typeof listSubmissionsInput>;
