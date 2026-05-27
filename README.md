@@ -39,7 +39,7 @@ The demo account is pre-seeded with 12 themed sample forms, each with 100–150 
 ## Repository Layout
 
 ```
-chai-forms/
+formhq/
 ├── apps/
 │   ├── api/                          # Express server (port 8000)
 │   │   └── src/{index,server,env}.ts
@@ -84,12 +84,12 @@ chai-forms/
 
 ## Database Schema
 
-| Table | Notes |
-|---|---|
-| `users` | email + password (HMAC-SHA256 + salt), `email_verified`, profile image |
-| `forms` | slug (unique, 30 chars), title, description, `is_published`, `published_at`, `visibility` (`PUBLIC` / `UNLISTED`), `theme_config` JSON, `expires_at`, `response_limit`, `created_by`, `deleted_at` (soft delete) |
-| `form_fields` | title (default `"Untitled question"`), `type` (9-value enum), `config` JSON discriminated union, `order` `numeric(scale:2)` (unique per form), `is_required` |
-| `form_submissions` | `form_id`, `values` JSON `[{ formFieldId, value }]`, `created_at` |
+| Table              | Notes                                                                                                                                                                                                            |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`            | email + password (HMAC-SHA256 + salt), `email_verified`, profile image                                                                                                                                           |
+| `forms`            | slug (unique, 30 chars), title, description, `is_published`, `published_at`, `visibility` (`PUBLIC` / `UNLISTED`), `theme_config` JSON, `expires_at`, `response_limit`, `created_by`, `deleted_at` (soft delete) |
+| `form_fields`      | title (default `"Untitled question"`), `type` (9-value enum), `config` JSON discriminated union, `order` `numeric(scale:2)` (unique per form), `is_required`                                                     |
+| `form_submissions` | `form_id`, `values` JSON `[{ formFieldId, value }]`, `created_at`                                                                                                                                                |
 
 `order` uses `numeric(scale:2)` so reordering a field only needs to update that one row's order key (e.g. inserting between `1.00` and `2.00` becomes `1.50`).
 
@@ -105,8 +105,8 @@ chai-forms/
 
 ```bash
 # 1. Clone and install
-git clone <repo-url> chai-forms
-cd chai-forms
+git clone https://github.com/ashishsingodiya/formhq.git formhq
+cd formhq
 pnpm install
 
 # 2. Copy env file and adjust as needed
@@ -183,11 +183,11 @@ The same tRPC router is exposed two ways:
 
 Routers:
 
-| Router | Procedures |
-|---|---|
-| `auth` | `createUserWithEmailAndPassword`, `signInUserWithEmailAndPassword`, `getLoggedInUserInfo`, `logout` |
-| `form` | `createForm`, `listForms`, `listPublicForms`, `getFormBySlug`, `getPublicFormBySlug`, `updateForm`, `deleteForm`, `createField`, `updateField`, `deleteField`, `getFields`, `submitForm`, `listSubmissions`, `listSubmissionsPaginated`, `getAnalytics`, `getDashboardStats` |
-| `health` | `getHealth` |
+| Router   | Procedures                                                                                                                                                                                                                                                                   |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auth`   | `createUserWithEmailAndPassword`, `signInUserWithEmailAndPassword`, `getLoggedInUserInfo`, `logout`                                                                                                                                                                          |
+| `form`   | `createForm`, `listForms`, `listPublicForms`, `getFormBySlug`, `getPublicFormBySlug`, `updateForm`, `deleteForm`, `createField`, `updateField`, `deleteField`, `getFields`, `submitForm`, `listSubmissions`, `listSubmissionsPaginated`, `getAnalytics`, `getDashboardStats` |
+| `health` | `getHealth`                                                                                                                                                                                                                                                                  |
 
 Authenticated procedures read the JWT from the `authentication-token` cookie via a tRPC middleware (`authenticatedProcedure` in `packages/trpc/server/trpc.ts`). Public submission, public-form-by-slug, and the public forms listing are open.
 
@@ -201,7 +201,7 @@ The builder canvas is a fixed-ratio frame (16:9 landscape or 9:16 portrait) cent
 
 `@repo/themes` exposes:
 
-- **17 presets** — Default, Ocean, Mono, Midnight, Rose, Amber, Slate, Crimson, Aurora, Lavender, Mountain, Forest, Cosmos, Blossom, Winter, Beach, Desert
+- **18 presets** — Default, Ocean, Mono, Midnight, Rose, Amber, Slate, Crimson, Aurora, Lavender, Mountain, Forest, Cosmos, Blossom, Winter, Beach, Desert
 - **8 fonts** via `next/font/google` — Geist, Inter, DM Sans, Space Grotesk, Lora, Playfair Display, Instrument Serif, JetBrains Mono
 - `resolveTheme(config)` — merges a preset with optional overrides
 - `themeToCssVars(theme)` — emits CSS variables consumed by the renderer

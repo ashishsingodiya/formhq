@@ -2,7 +2,7 @@ services:
   postgresdb:
     image: postgres:15
     restart: unless-stopped
-    container_name: chai-forms-db
+    container_name: formhq-db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -22,7 +22,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: migrator
-    container_name: chai-forms-migrate
+    container_name: formhq-migrate
     env_file: .env
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgresdb:5432/${POSTGRES_DB}
@@ -36,7 +36,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
-    container_name: chai-forms-api
+    container_name: formhq-api
     restart: unless-stopped
     env_file: .env
     environment:
