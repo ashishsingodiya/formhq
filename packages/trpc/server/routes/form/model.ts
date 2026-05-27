@@ -86,3 +86,26 @@ export const getFormBySlugOutputModel = z.object({
   createdBy: z.string().nullable(),
   createdAt: z.date().nullable(),
 });
+
+export const getPublicFormBySlugInputModel = z.object({
+  slug: z.string().describe("Slug of the form"),
+});
+
+export const getPublicFormBySlugOutputModel = z.object({
+  id: z.string(),
+  slug: z.string(),
+  title: z.string(),
+  description: z.string().nullable(),
+  fields: z.array(
+    z.object({
+      id: z.string(),
+      label: z.string(),
+      labelKey: z.string(),
+      type: fieldTypeEnum,
+      description: z.string().nullable(),
+      placeholder: z.string().nullable(),
+      isRequired: z.boolean(),
+      order: z.string(),
+    }),
+  ),
+});

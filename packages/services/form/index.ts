@@ -1,5 +1,6 @@
 import { db, eq } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
+import { formFieldsTable } from "@repo/database/models/form-field";
 import { customAlphabet } from "nanoid";
 import slugify from "slugify";
 import {
@@ -81,6 +82,46 @@ class FormService {
     if (!result || result.length === 0) throw new Error(`Form with slug "${slug}" does not exist`);
 
     return result[0]!;
+  }
+  public async getPublicFormBySlug(payload: GetFormBySlugInputType) {
+    const { slug } = await getFormBySlugInput.parseAsync(payload);
+
+    const result = await db
+      .select({
+        id: formsTable.id,
+        slug: formsTable.slug,
+        title: formsTable.title,
+        description: formsTable.description,
+        field: {
+          id: formFieldsTable.id,
+          label: formFieldsTable.label,
+          labelKey: formFieldsTable.labelKey,
+          type: formFieldsTable.type,
+          description: formFieldsTable.description,
+          placeholder: formFieldsTable.placeholder,
+          isRequired: formFieldsTable.isRequired,
+          order: formFieldsTable.order,
+        },
+      })
+      .from(formsTable)
+      .leftJoin(formFieldsTable, eq(formFieldsTable.formId, formsTable.id))
+      .where(eq(formsTable.slug, slug))
+      .orderBy(formFieldsTable.order);
+
+    if (!result || result.length === 0) throw new Error(`Form with slug "${slug}" does not exist`);
+
+    const form = result[0]!;
+    const fields = result
+      .filter((r) => r.field !== null && r.field.id !== null)
+      .map((r) => r.field!);
+
+    return {
+      id: form.id,
+      slug: form.slug,
+      title: form.title,
+      description: form.description,
+      fields,
+    };
   }
 }
 
