@@ -8,6 +8,8 @@ import {
   createFormOutputModel,
   deleteFieldInputModel,
   deleteFieldOutputModel,
+  deleteFormInputModel,
+  deleteFormOutputModel,
   getFieldsInputModel,
   getFieldsOutputModel,
   getFormBySlugInputModel,
@@ -119,5 +121,14 @@ export const formRouter = router({
     .output(listSubmissionsOutputModel)
     .query(async ({ input }) => {
       return formSubmissionService.listSubmissions(input);
+    }),
+
+  deleteForm: authenticatedProcedure
+    .meta({ openapi: { method: "DELETE", path: getPath("deleteForm"), tags: TAGS, protect: true } })
+    .input(deleteFormInputModel)
+    .output(deleteFormOutputModel)
+    .mutation(async ({ input, ctx }) => {
+      const { id } = await formService.deleteForm({ formId: input.formId, userId: ctx.user.id });
+      return { id };
     }),
 });

@@ -19,3 +19,10 @@ export const getFormBySlugInput = z.object({
 });
 
 export type GetFormBySlugInputType = z.infer<typeof getFormBySlugInput>;
+
+export const deleteFormInput = z.object({
+  formId: z.uuid().describe("UUID of the form to delete"),
+  userId: z.uuid().describe("UUID of the user deleting the form"),
+});
+
+export type DeleteFormInputType = z.infer<typeof deleteFormInput>;

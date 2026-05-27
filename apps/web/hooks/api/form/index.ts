@@ -171,3 +171,23 @@ export const useListSubmissions = (formId: string) => {
 
   return { submissions, error, isFetched, isFetching, isLoading, status, refetch };
 };
+
+export const useDeleteForm = () => {
+  const utils = trpc.useUtils();
+
+  const {
+    mutateAsync: deleteFormAsync,
+    mutate: deleteForm,
+    error,
+    isError,
+    isPending,
+    isSuccess,
+    status,
+  } = trpc.form.deleteForm.useMutation({
+    onSuccess: async () => {
+      await utils.form.listForms.invalidate();
+    },
+  });
+
+  return { deleteFormAsync, deleteForm, error, isError, isPending, isSuccess, status };
+};

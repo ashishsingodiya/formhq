@@ -23,6 +23,14 @@ export const listFormsOutputModel = z.array(
   }),
 );
 
+export const deleteFormInputModel = z.object({
+  formId: z.string().describe("UUID of the form to delete"),
+});
+
+export const deleteFormOutputModel = z.object({
+  id: z.string().describe("UUID of the deleted form"),
+});
+
 export const createFieldInputModel = z.object({
   formId: z.string().describe("UUID of the form"),
   label: z.string().min(1).max(100).describe("Display label of the field"),

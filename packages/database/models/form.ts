@@ -14,4 +14,5 @@ export const formsTable = pgTable("forms", {
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
+  deletedAt: timestamp("deleted_at"),
 });

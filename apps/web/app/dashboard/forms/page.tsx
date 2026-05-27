@@ -30,16 +30,18 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Textarea } from "~/components/ui/textarea";
-import { useCreateForm, useListForms } from "~/hooks/api/form";
+import { useCreateForm, useDeleteForm, useListForms } from "~/hooks/api/form";
 
 export default function FormsPage() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [deletingFormId, setDeletingFormId] = useState<string | null>(null);
 
   const { forms, isLoading } = useListForms();
   const { createFormAsync, isPending, isError } = useCreateForm();
+  const { deleteFormAsync, isPending: isDeleting } = useDeleteForm();
 
   const filtered = (forms ?? []).filter((f) =>
     f.title.toLowerCase().includes(search.toLowerCase()),
@@ -51,6 +53,12 @@ export default function FormsPage() {
     setTitle("");
     setDescription("");
     setOpen(false);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingFormId) return;
+    await deleteFormAsync({ formId: deletingFormId });
+    setDeletingFormId(null);
   };
 
   return (
@@ -166,7 +174,15 @@ export default function FormsPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>Edit</DropdownMenuItem>
                           <DropdownMenuItem>Copy link</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setDeletingFormId(form.id);
+                            }}
+                          >
+                            Delete
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -186,6 +202,26 @@ export default function FormsPage() {
           </div>
         )}
       </div>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={!!deletingFormId} onOpenChange={(o) => !o && setDeletingFormId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete form</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete this form? This action cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeletingFormId(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
