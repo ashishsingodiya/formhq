@@ -143,3 +143,17 @@ export const useDeleteField = (formId: string) => {
 
   return { deleteFieldAsync, deleteField, error, isError, isPending, isSuccess, status };
 };
+
+export const useSubmitForm = () => {
+  const {
+    mutateAsync: submitFormAsync,
+    mutate: submitForm,
+    error,
+    isError,
+    isPending,
+    isSuccess,
+    status,
+  } = trpc.form.submitForm.useMutation();
+
+  return { submitFormAsync, submitForm, error, isError, isPending, isSuccess, status };
+};

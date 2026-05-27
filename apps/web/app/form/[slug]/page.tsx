@@ -7,13 +7,14 @@ import { Label } from "~/components/ui/label";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Switch } from "~/components/ui/switch";
 import { Textarea } from "~/components/ui/textarea";
-import { useGetPublicFormBySlug } from "~/hooks/api/form";
+import { useGetPublicFormBySlug, useSubmitForm } from "~/hooks/api/form";
 
 type FieldType = "TEXT" | "NUMBER" | "EMAIL" | "YES_NO" | "PASSWORD";
 
 export default function PublicFormPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = React.use(params);
   const { form, isLoading } = useGetPublicFormBySlug(slug);
+  const { submitFormAsync, isPending } = useSubmitForm();
 
   const [values, setValues] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -24,7 +25,14 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: wire up submission procedure
+    if (!form) return;
+
+    const submissionValues = form.fields.map((field) => ({
+      formFieldId: field.id,
+      value: values[field.id] ?? "",
+    }));
+
+    await submitFormAsync({ formId: form.id, values: submissionValues });
     setSubmitted(true);
   };
 
@@ -98,8 +106,8 @@ export default function PublicFormPage({ params }: { params: Promise<{ slug: str
               </div>
             ))}
 
-            <Button type="submit" className="w-full mt-2">
-              Submit
+            <Button type="submit" className="w-full mt-2" disabled={isPending}>
+              {isPending ? "Submitting..." : "Submit"}
             </Button>
           </form>
         )}
