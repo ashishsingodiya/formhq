@@ -13,30 +13,30 @@ import { env } from "./env";
 
 export const app = express();
 const openApiDocument = generateOpenApiDocument(serverRouter, {
-  title: "My App OpenAPI",
+  title: "FormHQ API",
   version: "1.0.0",
   baseUrl: env.BASE_URL.concat("/api"),
 });
 
-if (env.NODE_ENV !== "prod") {
-  app.use(
-    cors({
-      origin: "http://localhost:3000",
-      credentials: true,
-    }),
-  );
-}
+const corsOrigin = env.NODE_ENV === "prod" ? env.FRONTEND_URL : "http://localhost:3000";
+
+app.use(
+  cors({
+    origin: corsOrigin,
+    credentials: true,
+  }),
+);
 
 app.use(cookieParser());
 
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  return res.json({ message: "Server is up and running..." });
+  return res.json({ message: "FormHQ API is up and running..." });
 });
 
 app.get("/health", (req, res) => {
-  return res.json({ message: "Server is healthy", healthy: true });
+  return res.json({ message: "FormHQ API is healthy", healthy: true });
 });
 
 logger.debug(`openapi.json: ${env.BASE_URL}/openapi.json`);

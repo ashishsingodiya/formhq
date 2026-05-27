@@ -10,6 +10,10 @@ import {
   deleteFieldOutputModel,
   deleteFormInputModel,
   deleteFormOutputModel,
+  getAnalyticsInputModel,
+  getAnalyticsOutputModel,
+  getDashboardStatsInputModel,
+  getDashboardStatsOutputModel,
   getFieldsInputModel,
   getFieldsOutputModel,
   getFormBySlugInputModel,
@@ -18,12 +22,18 @@ import {
   getPublicFormBySlugOutputModel,
   listFormsInputModel,
   listFormsOutputModel,
+  listPublicFormsInputModel,
+  listPublicFormsOutputModel,
   listSubmissionsInputModel,
   listSubmissionsOutputModel,
+  listSubmissionsPaginatedInputModel,
+  listSubmissionsPaginatedOutputModel,
   submitFormInputModel,
   submitFormOutputModel,
   updateFieldInputModel,
   updateFieldOutputModel,
+  updateFormInputModel,
+  updateFormOutputModel,
 } from "./model";
 
 const TAGS = ["Forms"];
@@ -49,6 +59,23 @@ export const formRouter = router({
     .output(listFormsOutputModel)
     .query(async ({ ctx }) => {
       return formService.listFormsByUserId({ userId: ctx.user.id });
+    }),
+
+  listPublicForms: publicProcedure
+    .meta({ openapi: { method: "GET", path: getPath("listPublicForms"), tags: TAGS } })
+    .input(listPublicFormsInputModel)
+    .output(listPublicFormsOutputModel)
+    .query(async () => {
+      return formService.listPublicForms();
+    }),
+
+  updateForm: authenticatedProcedure
+    .meta({ openapi: { method: "PATCH", path: getPath("updateForm"), tags: TAGS, protect: true } })
+    .input(updateFormInputModel)
+    .output(updateFormOutputModel)
+    .mutation(async ({ input, ctx }) => {
+      const { id } = await formService.updateForm({ ...input, userId: ctx.user.id });
+      return { id };
     }),
 
   createField: authenticatedProcedure
@@ -121,6 +148,41 @@ export const formRouter = router({
     .output(listSubmissionsOutputModel)
     .query(async ({ input }) => {
       return formSubmissionService.listSubmissions(input);
+    }),
+
+  listSubmissionsPaginated: authenticatedProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: getPath("listSubmissionsPaginated"),
+        tags: TAGS,
+        protect: true,
+      },
+    })
+    .input(listSubmissionsPaginatedInputModel)
+    .output(listSubmissionsPaginatedOutputModel)
+    .query(async ({ input }) => {
+      return formSubmissionService.listSubmissionsPaginated(input);
+    }),
+
+  getAnalytics: authenticatedProcedure
+    .meta({
+      openapi: { method: "GET", path: getPath("getAnalytics"), tags: TAGS, protect: true },
+    })
+    .input(getAnalyticsInputModel)
+    .output(getAnalyticsOutputModel)
+    .query(async ({ input }) => {
+      return formSubmissionService.getAnalytics(input);
+    }),
+
+  getDashboardStats: authenticatedProcedure
+    .meta({
+      openapi: { method: "GET", path: getPath("getDashboardStats"), tags: TAGS, protect: true },
+    })
+    .input(getDashboardStatsInputModel)
+    .output(getDashboardStatsOutputModel)
+    .query(async ({ ctx }) => {
+      return formSubmissionService.getDashboardStats({ userId: ctx.user.id });
     }),
 
   deleteForm: authenticatedProcedure

@@ -1,6 +1,7 @@
 import {
   boolean,
   index,
+  json,
   numeric,
   pgEnum,
   pgTable,
@@ -13,20 +14,80 @@ import {
 import { formsTable } from "./form";
 
 export const fieldTypeEnum = pgEnum("field_type_enum", [
-  "TEXT",
-  "NUMBER",
+  "SHORT_TEXT",
+  "LONG_TEXT",
   "EMAIL",
+  "NUMBER",
+  "SINGLE_SELECT",
+  "MULTI_SELECT",
+  "RATING",
+  "DATE",
   "YES_NO",
-  "PASSWORD",
 ]);
+
+export type FieldType = (typeof fieldTypeEnum.enumValues)[number];
+
+export type FieldOption = {
+  value: string;
+  label: string;
+};
+
+export type FieldConfig =
+  | {
+      type: "SHORT_TEXT";
+      minLength?: number;
+      maxLength?: number;
+      regex?: string;
+      regexMessage?: string;
+    }
+  | {
+      type: "LONG_TEXT";
+      minLength?: number;
+      maxLength?: number;
+    }
+  | {
+      type: "EMAIL";
+    }
+  | {
+      type: "NUMBER";
+      min?: number;
+      max?: number;
+      integer?: boolean;
+    }
+  | {
+      type: "SINGLE_SELECT";
+      options: FieldOption[];
+      display?: "dropdown" | "radio";
+    }
+  | {
+      type: "MULTI_SELECT";
+      options: FieldOption[];
+      minSelected?: number;
+      maxSelected?: number;
+      display?: "checkbox" | "tags";
+    }
+  | {
+      type: "RATING";
+      max?: number;
+      icon?: "star" | "heart" | "thumb";
+    }
+  | {
+      type: "DATE";
+      minDate?: string;
+      maxDate?: string;
+    }
+  | {
+      type: "YES_NO";
+      yesLabel?: string;
+      noLabel?: string;
+    };
 
 export const formFieldsTable = pgTable(
   "form_fields",
   {
     id: uuid("id").primaryKey().defaultRandom(),
 
-    label: varchar("label", { length: 100 }).notNull(),
-    labelKey: varchar("label_key", { length: 100 }).notNull(),
+    title: varchar("title", { length: 100 }).default("Untitled question").notNull(),
 
     description: text("description"),
 
@@ -38,6 +99,8 @@ export const formFieldsTable = pgTable(
 
     type: fieldTypeEnum("type").notNull(),
 
+    config: json("config").$type<FieldConfig>().notNull(),
+
     formId: uuid("form_id").references(() => formsTable.id),
 
     createdAt: timestamp("created_at").defaultNow(),
@@ -45,7 +108,9 @@ export const formFieldsTable = pgTable(
   },
   (table) => [
     unique("form_id_order_unique").on(table.formId, table.order),
-    unique("form_id_label_key_unique").on(table.formId, table.labelKey),
     index("form_id_idx").on(table.formId),
   ],
 );
+
+export type SelectFormField = typeof formFieldsTable.$inferSelect;
+export type InsertFormField = typeof formFieldsTable.$inferInsert;

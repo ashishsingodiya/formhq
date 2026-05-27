@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "~/components/ui/button";
@@ -28,6 +29,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const { signInUserWithEmailAndPasswordAsync } = useSignIn();
   const router = useRouter();
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
@@ -38,13 +40,18 @@ export default function LoginPage() {
   });
 
   async function onSubmit(values: LoginFormValues) {
-    console.log("Login:", values);
-    const { id } = await signInUserWithEmailAndPasswordAsync({
-      email: values.email,
-      password: values.password,
-    });
-    console.log(`User signed in with ID=${id}`);
-    router.replace("/dashboard");
+    setServerError(null);
+    try {
+      await signInUserWithEmailAndPasswordAsync({
+        email: values.email,
+        password: values.password,
+      });
+      router.replace("/dashboard");
+    } catch (err) {
+      setServerError(
+        err instanceof Error ? err.message : "Something went wrong. Please try again.",
+      );
+    }
   }
 
   return (
@@ -75,6 +82,7 @@ export default function LoginPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
+            {serverError && <p className="text-destructive text-sm w-full">{serverError}</p>}
             <Button type="submit" className="w-full">
               Login
             </Button>

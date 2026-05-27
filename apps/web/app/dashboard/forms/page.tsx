@@ -203,7 +203,6 @@ export default function FormsPage() {
         )}
       </div>
 
-      {/* Delete confirmation dialog */}
       <Dialog open={!!deletingFormId} onOpenChange={(o) => !o && setDeletingFormId(null)}>
         <DialogContent>
           <DialogHeader>

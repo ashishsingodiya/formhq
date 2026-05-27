@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "~/components/ui/button";
@@ -35,6 +36,8 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 export default function SignupPage() {
   const { createUserWithEmailAndPasswordAsync } = useSignup();
   const router = useRouter();
+  const [serverError, setServerError] = useState<string | null>(null);
+
   const {
     register,
     handleSubmit,
@@ -44,14 +47,19 @@ export default function SignupPage() {
   });
 
   async function onSubmit(values: SignupFormValues) {
-    console.log("Signup:", values);
-    const { id } = await createUserWithEmailAndPasswordAsync({
-      fullName: values.name,
-      email: values.email,
-      password: values.password,
-    });
-    console.log(`User created with ID=${id}`);
-    router.replace("/dashboard");
+    setServerError(null);
+    try {
+      await createUserWithEmailAndPasswordAsync({
+        fullName: values.name,
+        email: values.email,
+        password: values.password,
+      });
+      router.replace("/dashboard");
+    } catch (err) {
+      setServerError(
+        err instanceof Error ? err.message : "Something went wrong. Please try again.",
+      );
+    }
   }
 
   return (
@@ -99,6 +107,7 @@ export default function SignupPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
+            {serverError && <p className="text-destructive text-sm w-full">{serverError}</p>}
             <Button type="submit" className="w-full">
               Create account
             </Button>

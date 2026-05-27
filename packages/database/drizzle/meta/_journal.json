@@ -5,43 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1779794058305,
-      "tag": "0000_dear_payback",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1779794161533,
-      "tag": "0001_cold_tattoo",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1779794487569,
-      "tag": "0002_fuzzy_thunderbolt_ross",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1779831179591,
-      "tag": "0003_thankful_fabian_cortez",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1779840951829,
-      "tag": "0004_spotty_typhoid_mary",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1779856274554,
-      "tag": "0005_far_longshot",
+      "when": 1779879705161,
+      "tag": "0000_overjoyed_sentry",
       "breakpoints": true
     }
   ]

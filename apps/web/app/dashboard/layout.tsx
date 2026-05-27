@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, LayoutDashboard, LogOut, Settings } from "lucide-react";
+import { FileText, LayoutDashboard, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
@@ -19,7 +19,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleLogout = async () => {
     await logoutAsync({});
-    router.push("/login");
+    router.push("/");
   };
 
   return (
@@ -28,7 +28,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside className="w-56 shrink-0 border-r flex flex-col bg-background">
         {/* Brand */}
         <div className="px-4 py-5 border-b">
-          <span className="font-semibold text-base tracking-tight">FormHQ</span>
+          <Link href="/" className="font-semibold text-base tracking-tight">
+            FormHQ
+          </Link>
         </div>
 
         {/* Nav */}
@@ -52,18 +54,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Bottom */}
         <div className="px-2 py-3 border-t flex flex-col gap-0.5">
-          <Link
-            href="/dashboard/settings"
-            className={cn(
-              "flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors",
-              pathname === "/dashboard/settings"
-                ? "bg-accent text-accent-foreground font-medium"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-            )}
-          >
-            <Settings className="size-4 shrink-0" />
-            Settings
-          </Link>
           <Button
             variant="ghost"
             size="sm"

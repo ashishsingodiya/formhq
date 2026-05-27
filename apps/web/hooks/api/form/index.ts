@@ -70,6 +70,29 @@ export const useGetFormBySlug = (slug: string) => {
   return { form, error, isFetched, isFetching, isLoading, status };
 };
 
+export const useUpdateForm = (slug: string) => {
+  const utils = trpc.useUtils();
+
+  const {
+    mutateAsync: updateFormAsync,
+    mutate: updateForm,
+    error,
+    isError,
+    isPending,
+    isSuccess,
+    status,
+  } = trpc.form.updateForm.useMutation({
+    onSuccess: async () => {
+      await Promise.all([
+        utils.form.getFormBySlug.invalidate({ slug }),
+        utils.form.listForms.invalidate(),
+      ]);
+    },
+  });
+
+  return { updateFormAsync, updateForm, error, isError, isPending, isSuccess, status };
+};
+
 export const useGetFields = (formId: string) => {
   const {
     data: fields,
@@ -170,6 +193,41 @@ export const useListSubmissions = (formId: string) => {
   } = trpc.form.listSubmissions.useQuery({ formId }, { enabled: !!formId });
 
   return { submissions, error, isFetched, isFetching, isLoading, status, refetch };
+};
+
+export const useInfiniteListSubmissions = (formId: string) => {
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    trpc.form.listSubmissionsPaginated.useInfiniteQuery(
+      { formId, limit: 20 },
+      {
+        enabled: !!formId,
+        getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+        initialCursor: undefined,
+      },
+    );
+
+  const submissions = data?.pages.flatMap((p) => p.submissions) ?? [];
+
+  return { submissions, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading };
+};
+
+export const useListPublicForms = () => {
+  const { data: forms, isLoading } = trpc.form.listPublicForms.useQuery();
+  return { forms, isLoading };
+};
+
+export const useFormAnalytics = (formId: string) => {
+  const { data: analytics, isLoading } = trpc.form.getAnalytics.useQuery(
+    { formId },
+    { enabled: !!formId },
+  );
+
+  return { analytics, isLoading };
+};
+
+export const useDashboardStats = () => {
+  const { data: stats, isLoading } = trpc.form.getDashboardStats.useQuery();
+  return { stats, isLoading };
 };
 
 export const useDeleteForm = () => {

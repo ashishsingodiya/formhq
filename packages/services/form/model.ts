@@ -26,3 +26,81 @@ export const deleteFormInput = z.object({
 });
 
 export type DeleteFormInputType = z.infer<typeof deleteFormInput>;
+
+const themeOverrides = z
+  .object({
+    colors: z
+      .object({
+        background: z.string().optional(),
+        foreground: z.string().optional(),
+        primary: z.string().optional(),
+        primaryForeground: z.string().optional(),
+        accent: z.string().optional(),
+        muted: z.string().optional(),
+        border: z.string().optional(),
+        destructive: z.string().optional(),
+      })
+      .optional(),
+    background: z
+      .discriminatedUnion("type", [
+        z.object({ type: z.literal("solid"), value: z.string() }),
+        z.object({ type: z.literal("gradient"), value: z.string() }),
+        z.object({
+          type: z.literal("image"),
+          value: z.string(),
+          overlay: z.number().min(0).max(1).optional(),
+          blur: z.number().min(0).max(20).optional(),
+        }),
+      ])
+      .optional(),
+    typography: z
+      .object({
+        fontKey: z
+          .enum([
+            "geist",
+            "inter",
+            "dm-sans",
+            "space-grotesk",
+            "lora",
+            "playfair",
+            "instrument-serif",
+            "jetbrains-mono",
+          ])
+          .optional(),
+        fontSize: z.enum(["sm", "base", "lg"]).optional(),
+        headingWeight: z.enum(["normal", "medium", "semibold", "bold"]).optional(),
+      })
+      .optional(),
+    shape: z
+      .object({
+        radius: z.enum(["none", "sm", "md", "lg", "full"]).optional(),
+        buttonStyle: z.enum(["default", "rounded", "sharp", "pill"]).optional(),
+      })
+      .optional(),
+    layout: z
+      .object({
+        density: z.enum(["compact", "comfortable"]).optional(),
+        alignment: z.enum(["left", "center"]).optional(),
+      })
+      .optional(),
+  })
+  .strict();
+
+export const themeConfig = z.object({
+  presetId: z.string().min(1),
+  overrides: themeOverrides.optional(),
+});
+
+export const updateFormInput = z.object({
+  formId: z.uuid(),
+  userId: z.uuid(),
+  title: z.string().min(1).max(55).optional(),
+  description: z.string().max(300).nullable().optional(),
+  isPublished: z.boolean().optional(),
+  visibility: z.enum(["PUBLIC", "UNLISTED"]).optional(),
+  themeConfig: themeConfig.optional(),
+  expiresAt: z.date().nullable().optional(),
+  responseLimit: z.number().int().min(1).nullable().optional(),
+});
+
+export type UpdateFormInputType = z.infer<typeof updateFormInput>;

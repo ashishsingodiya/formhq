@@ -37,8 +37,6 @@ export function clearCookieFactorey(res: Response) {
   };
 }
 
-// Auth Cookie
-
 const AUTHENTICATION_COOKIE_NAME = "authentication-token";
 
 export function setAuthenticationCookie(ctx: TRPCContext, accessToken: string) {

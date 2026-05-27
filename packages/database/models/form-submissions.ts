@@ -3,7 +3,7 @@ import { formsTable } from "./form";
 
 export interface FormSubmissionValue {
   formFieldId: string;
-  value: string;
+  value: string | string[];
 }
 
 export type FormSubmissionValueRow = FormSubmissionValue[];

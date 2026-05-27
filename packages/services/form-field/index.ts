@@ -1,9 +1,9 @@
 import { db, eq, sql } from "@repo/database";
 import { formFieldsTable } from "@repo/database/models/form-field";
-import slugify from "slugify";
 import {
   createFieldInput,
   CreateFieldInputType,
+  defaultConfigForType,
   deleteFieldInput,
   DeleteFieldInputType,
   getFieldsInput,
@@ -13,25 +13,6 @@ import {
 } from "./model";
 
 class FormFieldService {
-  private generateLabelKey(label: string): string {
-    return slugify(label, { lower: true, strict: true, trim: true });
-  }
-
-  private async deduplicateLabelKey(formId: string, baseKey: string): Promise<string> {
-    const existing = await db
-      .select({ labelKey: formFieldsTable.labelKey })
-      .from(formFieldsTable)
-      .where(eq(formFieldsTable.formId, formId));
-
-    const existingKeys = new Set(existing.map((r) => r.labelKey));
-
-    if (!existingKeys.has(baseKey)) return baseKey;
-
-    let i = 2;
-    while (existingKeys.has(`${baseKey}-${i}`)) i++;
-    return `${baseKey}-${i}`;
-  }
-
   private async getNextOrder(formId: string): Promise<string> {
     const result = await db
       .select({ maxOrder: sql<string>`max(${formFieldsTable.order})` })
@@ -44,16 +25,24 @@ class FormFieldService {
   }
 
   public async createField(payload: CreateFieldInputType) {
-    const { formId, label, type, description, placeholder, isRequired } =
+    const { formId, title, type, description, placeholder, isRequired, config } =
       await createFieldInput.parseAsync(payload);
 
-    const baseKey = this.generateLabelKey(label);
-    const labelKey = await this.deduplicateLabelKey(formId, baseKey);
     const order = await this.getNextOrder(formId);
+    const fieldConfig = config ?? defaultConfigForType(type);
 
     const result = await db
       .insert(formFieldsTable)
-      .values({ formId, label, labelKey, type, description, placeholder, isRequired, order })
+      .values({
+        formId,
+        title,
+        type,
+        description,
+        placeholder,
+        isRequired,
+        order,
+        config: fieldConfig,
+      })
       .returning({ id: formFieldsTable.id });
 
     if (!result[0]?.id) throw new Error("Something went wrong while creating the field");
@@ -64,14 +53,40 @@ class FormFieldService {
   public async updateField(payload: UpdateFieldInputType) {
     const { fieldId, ...updates } = await updateFieldInput.parseAsync(payload);
 
+    if (Object.keys(updates).length === 0) throw new Error("No fields provided to update");
+
+    if (updates.type !== undefined) {
+      if (updates.config !== undefined && updates.config.type !== updates.type) {
+        throw new Error(
+          `config.type (${updates.config.type}) does not match new field type (${updates.type})`,
+        );
+      }
+      if (updates.config === undefined) {
+        updates.config = defaultConfigForType(updates.type);
+      }
+    } else if (updates.config !== undefined) {
+      const existing = await db
+        .select({ type: formFieldsTable.type })
+        .from(formFieldsTable)
+        .where(eq(formFieldsTable.id, fieldId));
+
+      if (!existing[0]) throw new Error(`Field with ID ${fieldId} does not exist`);
+
+      if (existing[0].type !== updates.config.type) {
+        throw new Error(
+          `config.type (${updates.config.type}) does not match field type (${existing[0].type})`,
+        );
+      }
+    }
+
     const patch: Partial<typeof formFieldsTable.$inferInsert> = {};
-    if (updates.label !== undefined) patch.label = updates.label;
-    if (updates.type !== undefined) patch.type = updates.type;
+    if (updates.title !== undefined) patch.title = updates.title;
     if ("description" in updates) patch.description = updates.description ?? null;
     if ("placeholder" in updates) patch.placeholder = updates.placeholder ?? null;
     if (updates.isRequired !== undefined) patch.isRequired = updates.isRequired;
-
-    if (Object.keys(patch).length === 0) throw new Error("No fields provided to update");
+    if (updates.type !== undefined) patch.type = updates.type;
+    if (updates.config !== undefined) patch.config = updates.config;
+    if (updates.order !== undefined) patch.order = updates.order;
 
     const result = await db
       .update(formFieldsTable)
@@ -98,13 +113,13 @@ class FormFieldService {
     const fields = await db
       .select({
         id: formFieldsTable.id,
-        label: formFieldsTable.label,
-        labelKey: formFieldsTable.labelKey,
+        title: formFieldsTable.title,
         type: formFieldsTable.type,
         description: formFieldsTable.description,
         placeholder: formFieldsTable.placeholder,
         isRequired: formFieldsTable.isRequired,
         order: formFieldsTable.order,
+        config: formFieldsTable.config,
       })
       .from(formFieldsTable)
       .where(eq(formFieldsTable.formId, formId))
