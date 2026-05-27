@@ -125,3 +125,22 @@ export const submitFormInputModel = z.object({
 export const submitFormOutputModel = z.object({
   id: z.string().describe("UUID of the submission"),
 });
+
+export const listSubmissionsInputModel = z.object({
+  formId: z.string().describe("UUID of the form"),
+});
+
+export const listSubmissionsOutputModel = z.array(
+  z.object({
+    id: z.string(),
+    values: z
+      .array(
+        z.object({
+          formFieldId: z.string(),
+          value: z.string(),
+        }),
+      )
+      .nullable(),
+    createdAt: z.date().nullable(),
+  }),
+);

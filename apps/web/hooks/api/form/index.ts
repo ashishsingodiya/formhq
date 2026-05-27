@@ -157,3 +157,17 @@ export const useSubmitForm = () => {
 
   return { submitFormAsync, submitForm, error, isError, isPending, isSuccess, status };
 };
+
+export const useListSubmissions = (formId: string) => {
+  const {
+    data: submissions,
+    error,
+    isFetched,
+    isFetching,
+    isLoading,
+    status,
+    refetch,
+  } = trpc.form.listSubmissions.useQuery({ formId }, { enabled: !!formId });
+
+  return { submissions, error, isFetched, isFetching, isLoading, status, refetch };
+};

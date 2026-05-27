@@ -23,12 +23,14 @@ import {
 } from "~/components/ui/select";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Switch } from "~/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Textarea } from "~/components/ui/textarea";
 import {
   useCreateField,
   useDeleteField,
   useGetFields,
   useGetFormBySlug,
+  useListSubmissions,
   useUpdateField,
 } from "~/hooks/api/form";
 
@@ -68,13 +70,13 @@ export default function FormBuilderPage({ params }: { params: Promise<{ slug: st
   const formId = form?.id ?? "";
 
   const { fields, isLoading: fieldsLoading } = useGetFields(formId);
+  const { submissions, isLoading: submissionsLoading } = useListSubmissions(formId);
   const { createFieldAsync, isPending: creating } = useCreateField();
   const { updateFieldAsync, isPending: updating } = useUpdateField(formId);
   const { deleteFieldAsync } = useDeleteField(formId);
 
   const [addOpen, setAddOpen] = useState(false);
   const [fieldForm, setFieldForm] = useState<FieldForm>(defaultFieldForm);
-
   const [editingField, setEditingField] = useState<EditingField | null>(null);
 
   const handleAdd = async () => {
@@ -110,6 +112,9 @@ export default function FormBuilderPage({ params }: { params: Promise<{ slug: st
 
   const isLoading = formLoading || (!!formId && fieldsLoading);
 
+  // Build a fieldId → label map for the response table
+  const fieldLabelMap = Object.fromEntries((fields ?? []).map((f) => [f.id, f.label]));
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -135,73 +140,148 @@ export default function FormBuilderPage({ params }: { params: Promise<{ slug: st
         </Button>
       </header>
 
-      {/* Fields */}
-      <div className="flex-1 overflow-auto px-6 py-6">
-        {isLoading ? (
-          <div className="flex flex-col gap-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-16 rounded-lg" />
-            ))}
-          </div>
-        ) : !fields || fields.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
-            <p className="text-muted-foreground text-sm">No fields yet.</p>
-            <Button variant="outline" size="sm" onClick={() => setAddOpen(true)}>
-              <Plus />
-              Add your first field
-            </Button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2 max-w-2xl">
-            {fields.map((field, index) => (
-              <div
-                key={field.id}
-                className="flex items-center gap-3 border rounded-lg px-4 py-3 bg-card"
-              >
-                <span className="text-xs text-muted-foreground w-5 shrink-0">{index + 1}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {field.label}
-                    {field.isRequired && <span className="text-destructive ml-1">*</span>}
-                  </p>
-                  {field.description && (
-                    <p className="text-xs text-muted-foreground truncate">{field.description}</p>
-                  )}
+      {/* Tabs */}
+      <Tabs defaultValue="fields" className="flex-1 flex flex-col overflow-hidden">
+        <TabsList className="mx-6 mt-4 w-fit shrink-0">
+          <TabsTrigger value="fields">Fields</TabsTrigger>
+          <TabsTrigger value="responses">
+            Responses
+            {submissions && submissions.length > 0 && (
+              <Badge variant="secondary" className="ml-1.5">
+                {submissions.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Fields tab */}
+        <TabsContent value="fields" className="flex-1 overflow-auto px-6 py-4">
+          {isLoading ? (
+            <div className="flex flex-col gap-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 rounded-lg" />
+              ))}
+            </div>
+          ) : !fields || fields.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+              <p className="text-muted-foreground text-sm">No fields yet.</p>
+              <Button variant="outline" size="sm" onClick={() => setAddOpen(true)}>
+                <Plus />
+                Add your first field
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 max-w-2xl">
+              {fields.map((field, index) => (
+                <div
+                  key={field.id}
+                  className="flex items-center gap-3 border rounded-lg px-4 py-3 bg-card"
+                >
+                  <span className="text-xs text-muted-foreground w-5 shrink-0">{index + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {field.label}
+                      {field.isRequired && <span className="text-destructive ml-1">*</span>}
+                    </p>
+                    {field.description && (
+                      <p className="text-xs text-muted-foreground truncate">{field.description}</p>
+                    )}
+                  </div>
+                  <Badge variant="secondary" className="shrink-0">
+                    {TYPE_LABELS[field.type as FieldType]}
+                  </Badge>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() =>
+                        setEditingField({
+                          id: field.id,
+                          label: field.label,
+                          type: field.type as FieldType,
+                          description: field.description ?? "",
+                          placeholder: field.placeholder ?? "",
+                          isRequired: field.isRequired,
+                        })
+                      }
+                    >
+                      <Pencil />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => handleDelete(field.id)}
+                    >
+                      <Trash2 />
+                    </Button>
+                  </div>
                 </div>
-                <Badge variant="secondary" className="shrink-0">
-                  {TYPE_LABELS[field.type as FieldType]}
-                </Badge>
-                <div className="flex items-center gap-1 shrink-0">
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() =>
-                      setEditingField({
-                        id: field.id,
-                        label: field.label,
-                        type: field.type as FieldType,
-                        description: field.description ?? "",
-                        placeholder: field.placeholder ?? "",
-                        isRequired: field.isRequired,
-                      })
-                    }
-                  >
-                    <Pencil />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => handleDelete(field.id)}
-                  >
-                    <Trash2 />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Responses tab */}
+        <TabsContent value="responses" className="flex-1 overflow-auto px-6 py-4">
+          {submissionsLoading ? (
+            <div className="flex flex-col gap-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-12 rounded-lg" />
+              ))}
+            </div>
+          ) : !submissions || submissions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+              <p className="text-muted-foreground text-sm">No responses yet.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 pr-4 text-muted-foreground font-medium whitespace-nowrap">
+                      #
+                    </th>
+                    {(fields ?? []).map((f) => (
+                      <th
+                        key={f.id}
+                        className="text-left py-2 pr-4 text-muted-foreground font-medium whitespace-nowrap"
+                      >
+                        {f.label}
+                      </th>
+                    ))}
+                    <th className="text-left py-2 pr-4 text-muted-foreground font-medium whitespace-nowrap">
+                      Submitted
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {submissions.map((submission, index) => {
+                    const valueMap = Object.fromEntries(
+                      (submission.values ?? []).map((v) => [v.formFieldId, v.value]),
+                    );
+                    return (
+                      <tr key={submission.id} className="border-b last:border-0">
+                        <td className="py-2 pr-4 text-muted-foreground">{index + 1}</td>
+                        {(fields ?? []).map((f) => (
+                          <td key={f.id} className="py-2 pr-4 max-w-48 truncate">
+                            {valueMap[f.id] ?? <span className="text-muted-foreground">—</span>}
+                          </td>
+                        ))}
+                        <td className="py-2 pr-4 text-muted-foreground whitespace-nowrap">
+                          {submission.createdAt
+                            ? new Date(submission.createdAt).toLocaleString()
+                            : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Add Field Dialog */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>

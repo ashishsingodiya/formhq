@@ -16,6 +16,8 @@ import {
   getPublicFormBySlugOutputModel,
   listFormsInputModel,
   listFormsOutputModel,
+  listSubmissionsInputModel,
+  listSubmissionsOutputModel,
   submitFormInputModel,
   submitFormOutputModel,
   updateFieldInputModel,
@@ -107,5 +109,15 @@ export const formRouter = router({
     .mutation(async ({ input }) => {
       const { id } = await formSubmissionService.submitForm(input);
       return { id };
+    }),
+
+  listSubmissions: authenticatedProcedure
+    .meta({
+      openapi: { method: "GET", path: getPath("listSubmissions"), tags: TAGS, protect: true },
+    })
+    .input(listSubmissionsInputModel)
+    .output(listSubmissionsOutputModel)
+    .query(async ({ input }) => {
+      return formSubmissionService.listSubmissions(input);
     }),
 });
