@@ -44,6 +44,19 @@ export const useListForms = () => {
   return { forms, error, isFetched, isFetching, isLoading, status, refetch };
 };
 
+export const useGetPublicFormBySlug = (slug: string) => {
+  const {
+    data: form,
+    error,
+    isFetched,
+    isFetching,
+    isLoading,
+    status,
+  } = trpc.form.getPublicFormBySlug.useQuery({ slug }, { enabled: !!slug });
+
+  return { form, error, isFetched, isFetching, isLoading, status };
+};
+
 export const useGetFormBySlug = (slug: string) => {
   const {
     data: form,
