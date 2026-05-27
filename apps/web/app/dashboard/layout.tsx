@@ -1,8 +1,10 @@
 "use client";
 
-import { FileText, LayoutDashboard, Settings } from "lucide-react";
+import { FileText, LayoutDashboard, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { Button } from "~/components/ui/button";
+import { useLogout } from "~/hooks/api/auth";
 import { cn } from "~/lib/utils";
 
 const navItems = [
@@ -12,6 +14,13 @@ const navItems = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logoutAsync, isPending } = useLogout();
+
+  const handleLogout = async () => {
+    await logoutAsync({});
+    router.push("/login");
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -42,7 +51,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* Bottom */}
-        <div className="px-2 py-3 border-t">
+        <div className="px-2 py-3 border-t flex flex-col gap-0.5">
           <Link
             href="/dashboard/settings"
             className={cn(
@@ -55,6 +64,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Settings className="size-4 shrink-0" />
             Settings
           </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="justify-start gap-2.5 px-3 text-muted-foreground hover:text-destructive"
+            onClick={handleLogout}
+            disabled={isPending}
+          >
+            <LogOut className="size-4 shrink-0" />
+            {isPending ? "Logging out..." : "Logout"}
+          </Button>
         </div>
       </aside>
 

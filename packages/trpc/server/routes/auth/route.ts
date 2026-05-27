@@ -1,12 +1,18 @@
 import { userService } from "../../services";
 import { authenticatedProcedure, publicProcedure, router } from "../../trpc";
-import { getAuthenticationCookie, setAuthenticationCookie } from "../../utils/cookie";
+import {
+  clearAuthenticationCookie,
+  getAuthenticationCookie,
+  setAuthenticationCookie,
+} from "../../utils/cookie";
 import { generatePath } from "../../utils/path-generator";
 import {
   createUserWithEmailAndPasswordInputModel,
   createUserWithEmailAndPasswordOutputModel,
   getLoggedInUserInfoInputModel,
   getLoggedInUserInfoOutputModel,
+  logoutInputModel,
+  logoutOutputModel,
   signInUserWithEmailAndPasswordInputModel,
   signInUserWithEmailAndPasswordOutputModel,
 } from "./model";
@@ -83,5 +89,21 @@ export const authRouter = router({
       );
 
       return { email, fullName, id, profileImageUrl };
+    }),
+
+  logout: authenticatedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("logout"),
+        tags: TAGS,
+        protect: true,
+      },
+    })
+    .input(logoutInputModel)
+    .output(logoutOutputModel)
+    .mutation(async ({ ctx }) => {
+      clearAuthenticationCookie(ctx);
+      return { success: true };
     }),
 });

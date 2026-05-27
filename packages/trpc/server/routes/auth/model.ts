@@ -27,3 +27,9 @@ export const getLoggedInUserInfoOutputModel = z.object({
   fullName: z.string().describe("name of the user"),
   profileImageUrl: z.string().describe("image of the user").optional().nullable(),
 });
+
+export const logoutInputModel = z.object({});
+
+export const logoutOutputModel = z.object({
+  success: z.boolean(),
+});
