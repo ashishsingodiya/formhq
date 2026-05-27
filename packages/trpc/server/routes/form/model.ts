@@ -109,3 +109,19 @@ export const getPublicFormBySlugOutputModel = z.object({
     }),
   ),
 });
+
+export const submitFormInputModel = z.object({
+  formId: z.string().describe("UUID of the form"),
+  values: z
+    .array(
+      z.object({
+        formFieldId: z.string().describe("UUID of the form field"),
+        value: z.string().describe("Value submitted for the field"),
+      }),
+    )
+    .min(1),
+});
+
+export const submitFormOutputModel = z.object({
+  id: z.string().describe("UUID of the submission"),
+});
